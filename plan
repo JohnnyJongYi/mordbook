@@ -1,0 +1,32 @@
+Core functionalities:
+1. Handle fills on NewOrder and UpdateOrder
+2. Handle cancel on filled orders
+3. Handle multiple fills on NewOrder and UpdateOrder
+4. Record fills as they happen.
+
+Implementation:
+In orderBook add a OrderList to hold new orders, updated orders, filled orders, cancelled orders, etc.
+Call this m_working_orders
+
+then find the corresponding final place for the order to go.
+For example new/updated orders with remaining size should go to the Level that will own them.
+
+The cancelled or filled orders will go into m_done_orders, after their status is updated.
+
+Fills:
+    int fill_px;
+    int fill_amt;
+    side_t side;
+    id_t book_id;
+    id_t new_id;
+
+m_fills: vector<Fills>
+   
+Handling of empty asks/bids, or empty OrderLevels?
+The problem on empty OrderLevels, since their lifetime is tied to the std::map's operator[] and erase, is that we aren't sure if we should allow a getLevel on a wrong price. There seems to be no guarantee that a getLevel should be used with a price that has other orders. Therefore getLevel should handle this case, where a price has no other orders, and then return a nullptr when that happens.
+
+This could happen if we are adding a new order.
+If we cancel orders or update a previous order, the level should be there.
+Or if we are looking for some previous order, the order should be there.
+Adding a new order, should be done in dispatchOrders.
+So we can have a simple version where getLevel on a wrong price is not allowed. 
